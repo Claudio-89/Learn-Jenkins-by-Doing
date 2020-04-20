@@ -98,6 +98,8 @@ Building an App as a Freestyle Jenkins Project
 ###############################################
 The team has asked us to configure a Jenkins project to build the train-schedule app. The source code for the application is hosted in the GitHub repository. The app already has build automation set up using gradle wrapper, and can be built with ./gradlew build. The team wants Jenkins to execute this automated build every time changes are pushed to the GitHub repository.
 
+"Webhook overview: A webhook (also called a web callback or HTTP push API) is a way for an app to provide other applications with real-time information. A webhook delivers data to other applications as it happens, meaning you get data immediately. Webhook vs API, To put it simply, an API does stuff when you ask it to, while a Webhook does stuff on it’s own when certain criteria is met or scenarios takes place."
+
 Logging In
 We're going to be landing on a public GitHub repository (linked to above) and creating a new fork, using our own personal GitHub account. To configure Jenkins though, the use the credentials and IP provided in the hands-on lab overview page to log into our Jenkins server.
 
