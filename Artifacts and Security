@@ -1,0 +1,138 @@
+########################################
+Working with Artifacts and Fingerprints
+########################################
+In this hands-on lab, we will be looking at working with artifacts and fingerprints. We will install the copy artifact plugin, and we will pass artifacts between jobs. This will allow us to chain builds to segment the build process. This is needed to prevent overrun where a team that feeds a section of the pipeline has access to another area that is not under their direct scope.
+
+"Artifacts overview: Artifacts can be used to represent data created as a side-effect of running a Jenkins build. Artifacts are files which are associated with a single build."
+
+"Fingerprint Artifacts overview: The fingerprint of a file is simply a MD5 checksum. Jenkins maintains a database of md5sum , and for each md5sum , Jenkins records which builds of which projects used. This database is updated every time a build runs and files are fingerprinted."
+ 
+
+Create the webdev Folder and the index Project
+Click Manage Jenkins.
+Click Global Tool Configuration.
+Scroll down, and click Add Maven.
+Enter "M3" as the name.
+Click Save.
+Navigate back to the dashboard.
+Click New Item.
+Give it the name "webdev".
+Select Folder.
+Click OK.
+Accept the defaults, and click Save.
+Look at the top breadcrumb navigation menu to ensure we're in the webdev folder.
+Click the create new jobs link.
+Give it the name "index".
+Select Freestyle project.
+Click OK.
+Click the Source Code Management tab.
+Select Git.
+In the Repository URL field, enter: https://github.com/linuxacademy/content-cje-prebuild.git
+Click the Build tab.
+In the Build section, click the dropdown and select Invoke top-level Maven targets.
+Set the following values:
+Maven Version: M3
+Goals: clean package
+Click Add build step > Execute shell.
+In the Command field, enter "bin/makeindex".
+Under Post-build Actions, click Add post-build action > Archive the artifacts.
+In the Files to archive field, enter "index.jsp".
+Click Advanced....
+Select Fingerprint all archived artifacts.
+Click Save.
+On the Project index page, click Build Now. Give it a minute or so to complete.
+Once it's done, refresh the page.
+Right-click view next to index.jsp to open it in a new browser tab. We should see the message, "Hello the Tomcat server is running!"
+Install the Copy Artifact Plugin
+On the Jenkins page, click Jenkins > Manage Jenkins > Manage Plugins.
+Click the Available tab.
+Search for "copy artifact" in the upper-right Filter field.
+Select the checkbox for Copy Artifact.
+Click Download now and install after restart.
+Select Restart Jenkins when installation is complete and no jobs are running.
+Give it a minute or so for Jenkins to restart.
+
+Note: We may need to refresh and sign back in using the same credentials as before.
+
+Create and Build the tomcat Project
+Navigate back to the dashboard.
+Click New Item.
+Give it the name "backend".
+Select Folder.
+Click OK.
+Accept the defaults, and click Save.
+Look at the top breadcrumb navigation menu to ensure we're in the backend folder.
+Click New Item.
+Give it the name "tomcat".
+Select Folder.
+Click OK.
+Accept the defaults, and click Save.
+Look at the top breadcrumb navigation menu to ensure we're in the tomcat folder.
+Click the create new jobs link.
+Give it the name "tomcat".
+Select Freestyle project.
+Click OK.
+Click the Source Code Management tab.
+Select Git.
+In the Repository URL field, enter: https://github/com/linuxacademy/content-jenkinscert.git
+Click the Build tab.
+Click Add build step > Copy artifacts from another project.
+Set the following values:
+Project name: webdev/index
+Artifacts to copy: index.jsp
+Target directory: src/main/webapp
+Click Add build step > Invoke top-level Maven targets.
+Set the following values:
+Maven Version: M3
+Goals: clean package
+Under Post-build Actions, click Add post-build action > Publish JUnit test result report.
+In the Test report XMLs field, enter "target/surefire-reports/*.xml".
+Click Save.
+Click Build Now. It will take a few minutes to complete.
+Once it's done, navigate to Workspace > src > main > webapp.
+Click view to verify the index.jsp copied the message correctly. We should see the same HTML we saw earlier.
+
+####################
+Security in Jenkins
+####################
+The company has failed a security audit and it has been determined that stricter security needs to be implemented on all servers and services, this includes the Jenkins server. To this end you will need to create folders for the jobs that are on the jenkins server. There are 3 users that need to be on the server. James is the web developer and his projects need to be in the webdev folder so that only James can access them. Diane is the manager of backend development and needs access to the backend folder and all jobs in that folder and all children of that folder. Laura is a new developer on the backend team and has been hired to get the tomcat project back on track. She will require access to the backend/tomcat folder and all jobs in that folder. You will need to create these folders and some dummy jobs to ensure that the permissions are correct and that only the required access is given.
+
+Enable Project based matrix security
+
+go to manage jenkins > global security and enable project based matrix seecurity. Ensure that authenticated users have global read access at this level.
+
+Create users, James, Diane and Laura
+
+Go to manage jenkins > manage users and create accounts for James, Diane and Laura
+
+Remember the passwords so that you can Audit secrity as you set it.
+
+Create webdev folder and give James access
+
+Create a top level folder named webdev.
+
+Enable project security and disallow inheritance
+
+Add james and give him full access.
+
+Make a freestyle project named test, and set it to inherit from parent.
+
+create backend folder and give Diane full access
+
+Create a top level folder named backend, in the folder config enable project based security
+
+Disable inheritance and add Diane and grant full access
+
+Create tomcat folder inside the backend folder and give Laura access to this folder.
+
+Go into the backend folde, create a new item, create a folder named tomcat.
+
+On this folder configure project based security and add laura with full access and alllow inheritance from parent.
+
+Make sure that on the backend folder Laura has permissons to view job so that she can see the tomcat folder.
+
+inside tomcat make a test freestyle project.
+
+Verify that James is not able to access the backend folder, Diane cannot see the webdev folder but can see tomcat, Laura can only access tomcat.
+Login as each user and attempt to access the folders that they should not be allowed access to.
+
