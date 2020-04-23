@@ -1,0 +1,167 @@
+######################
+Parameterizing builds
+######################
+The web dev team has indicated that they have made a recent change to the index project and that this project now needs to have a name supplied so that the build can be customized. This is a maven project from the M3 server. The name should be provided in string format, and the name should be Steve.
+
+Create the webdev folder and index freestyle project
+On the dash board create a new item named webdev make it a folder.
+
+Inside of webdev make a freestyle project named index.
+
+Configure the index project to accept the name Steve
+In the index project click this build requires parameters.
+
+Add a string parameter called name, the value should be steve
+
+Add the git repo
+
+add the maven server M3
+
+add the shell command to make the bin/makeindex
+
+Make a post build action to archive the artifact.
+
+check the artifat to ensure that it says hello steve.
+
+###############
+Build Triggers
+###############
+The Copy Artifact Plugin
+We need the Copy Artifact plugin, so let's navigate to Manage Jenkins in the left menu, choose Manage Plugins from the list here, and then get into the Availability tab. There's a Filter where we can start typing the name of the plugin, Copy Artifact. Check the box next to it once it shows up in the list, then click the Download now and install after restart button down below.
+
+We'll get bumped out to another page where we can check a box next to Restart Jenkins when installation is complete and no jobs are running. Jenkins should restart now. Wait a bit, then refresh the browser.
+
+Create webdev/index and Archive index.jsp
+Once Jenkins is back up and running, Click New Item from the menu back out on the main page. In the item name field, type webdev, then click on the Folder option in the list below. Click OK. We'll land on a page where we can change properties and details, but just click Save down at the bottom to accept the defaults.
+
+Now, in that webdev folder, we can click on the create new jobs link. On the next screen, enter an item name of index. Click on Freestyle project, then OK. On the next screen, we want to check the This is a parameterized project box, and choose String Parameter from the dropdown that appears. Set these values in the form that we see:
+
+Name: name
+Default Value: steve
+Once those are set, we can navigate (in the tabs near the top of the screen) to Source Code Management. Select Git from the list, and use https://github.com/linuxacademy/content-cje-prebuild.git as the Repository URL.
+
+Scroll down a bit to the Build section, and in the Add build step dropdown, choose Invoke top-level Maven targets. In the Goals input box that appears, type clean package.
+
+Click the Add build step dropdown again, but this time choose Execute shell. In the Command text area, enter bin/makeindex.
+
+Now we can scroll down a bit farther to the Post-build Actions section. Click the Add post-build action dropdown and choose Archive the artifacts. In the Files to archive box that appears, type index.jsp, then click on the Advanced... button over to the right. In the list of things that show up down below, check Fingerprint all archived artifacts, then click the Save button below the list.
+
+Let's navigate back to Manage Jenkins in the left menu, and choose Global Tool Configuration from the list. Scroll down to the Maven section, click the Add Maven button, give it a Name of M3, and click the Save button.
+
+Now let's navigate back to our webdev folder. Click on the Jenkins link up in the main menu, then the webdev link (out in the main work area), and click on index. Click on the Configure link (in the left-hand menu), get into the Build Environment tab, and scroll down to the Build section. We should see a Maven Version dropdown where we can select M3. Click Save.
+
+Create backend and tomcat Folders
+Click New Item from the menu back out on the main page. In the item name field, type backend, then click on the Folder option in the list below. Click OK. We'll land on a page again where we can change properties and details, but we're just going to click Save down at the bottom to accept these defaults too.
+
+We should be sitting in the backend folder. Repeat the last process from here to create a tomcat subfolder.
+
+Create a tomcat Job
+From within that tomcat folder, we're going to set up a job. Click on create new jobs here. In the Enter an item name box, enter tomcat, then click on Freestyle project. Navigate (in the tabs near the top of the screen) to Source Code Management. Select Git from the list, and use https://github.com/linuxacademy/content-jenkinscert.git as the Repository URL.
+
+Now we can scroll down to Build Triggers, check the Build after other projects are built box, and enter webdev/index in the Projects to watch box. Select Trigger only if build is stable from the list right below that.
+
+Let's scroll down to the Build section, and click Add build step. Choose Copy artifacts from another project. In the next form that shows up, we can enter webdev/index in the Project name field, index.jsp in the Artifacts to copy field, and set the Target directory field to src/main/webapp.
+
+Click Add build step again and choose Invoke top-level Maven targets from the dropdown. Set the Maven Version to M3, and the Goals to clean package. Once we're done that, we can click Save.
+
+Build It
+Now go back out to the main Jenkins area (by clicking it in the uppermost left menu choice on the screen), and navigate to webdev. Click the button on the right to schedule a build. We'll be prompted to enter parameters. Just type steve in the name text box, and click the Build button. Now we can navigate back out to the main Jenkins page and watch the webdev >> index build status.
+
+Once that's complete, backend >> tomcat >> tomcat should start building. After that finishes, we can navigate to the tomcat project (In the top menu, click at Jenkins, then click backend, tomcat, and tomcat in the main part of the interface). In there, we can click on the Workspace icon, then the src folder link, then main, webapp, and finally the view link next to index.jsp.
+
+We should see a Hello steve... message in there.
+
+############################
+Building a Jenkins Pipeline 
+############################
+Jenkins Pipeline allows you to treat all of your build logic as code. You can also integrate your build into a larger automated process that includes things like automated deployment. Pipelines are especially useful as you transition from doing CI to doing CI+CD.
+
+In this hands-on lab, you will build a simple pipeline for a sample application. You will gain a basic familiarity with how a Jenkins Pipeline is created and how to implement simple build logic within a pipeline.
+
+Build the Master Branch of the train-schedule Pipeline Project
+
+Create a personal fork of the sample source code repository, which you can find here: https://github.com/linuxacademy/cicd-pipeline-train-schedule-pipelines
+
+Click Create new file. Name the file Jenkinsfile.
+
+Enter:
+
+pipeline {
+  agent any
+  stages {
+    stage ('Build') {
+      steps {
+        echo 'Running build automation'
+        sh './gradlew build --no-daemon'
+        archiveArtifacts artifacts: 'dist/trainSchedule.zip'
+      }
+    }
+  }
+}
+
+Click Commit new file at the bottom.
+
+Before we can test this in Jenkins, we need to get an API key from GitHub so Jenkins can pull down this source code from GitHub. To do this:
+
+    Click your avatar in the top right corner
+    Click Settings.
+    Click Developer settings.
+    Click Personal access tokens.
+    Click Generate new token.
+    Token description: jenkins
+    Check the box next to admin:repo_hook.
+    Generate token
+
+Copy the generated token to the clipboard.
+Create a New Multibranch Pipeline Project in Jenkins
+
+Navigate to the Jenkins server by entering the public IP address listed on the lab page, followed by :8080, in a browser.
+
+In Jenkins, click New Item.
+
+For the item name, type train-schedule, and select Multibranch Pipeline. Click OK.
+
+Under Branch Sources, click Add source, and select Git.
+
+Under Credentials, click Add, and select Jenkins.
+
+    Username: Enter your GitHub username.
+    Password: Paste in the API key you copied before.
+    ID: github_key
+    Description: GitHub key
+    Click Add.
+
+In the new Git section under Branch Sources, click the Credentials dropdown and select the credential you just created. For Project Repository, copy and paste in the URL of your personal fork of the source code repository. Click Save.
+
+The initial build will take several minutes to complete
+
+#############################################################
+Implementing Automated Deployment Through a Jenkins Pipeline
+#############################################################
+Your team is working on the train-schedule app. A Jenkins Pipeline has already been created for the app, but all it does right now is run a continuous integration build. The team has asked you to add automated deployments to a staging server, and to add a production server to the pipeline. The team has decided to use the master branch of the git repository to control deployments, so only changes to the master branch should be deployed. Whenever there is a change to the master branch, the Pipeline needs to do the following after the CI build is completed:
+
+Deploy the application to a Staging server.
+Wait for approval before deploying to Production.
+Once approval is provided, deploy to Production.
+
+Deploy the app to the staging server via the Jenkins pipeline
+
+To Complete this task, you will need to do the following:
+
+Configure the staging and production servers for the Publish Over SSH plugin.
+
+Add a credential to Jenkins called webserver_login to allow Jenkins to authenticate with the web servers. The user has already been created on the web servers with the username deploy and the password jenkins.
+
+Create a multibranch pipeline project called train schedule and set it up to build from your GitHub fork.
+
+Create a stage in the Jenkinsfile to deploy the app to the staging server. Check the DeployToStaging stage in the sample solution Jenkinsfile for an example of how this can be done: https://github.com/linuxacademy/cicd-pipeline-train-schedule-cd/blob/example-solution/Jenkinsfile
+
+Run the build to deploy to the staging server.
+
+Deploy the app to the production server via the Jenkins pipeline:
+
+Create a stage to deploy to production after awaiting user input. Check the DeployToProduction stage in the sample solution Jenkinsfile for an example of how this can be done: https://github.com/linuxacademy/cicd-pipeline-train-schedule-cd/blob/example-solution/Jenkinsfile.
+
+Run the build.
+
+Approve the deployment to production.
